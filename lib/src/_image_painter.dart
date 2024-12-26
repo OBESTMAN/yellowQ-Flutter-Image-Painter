@@ -65,20 +65,18 @@ class DrawImage extends CustomPainter {
         case PaintMode.freeStyle:
           for (int i = 0; i < _offset.length - 1; i++) {
             if (_offset[i] != null && _offset[i + 1] != null) {
-              // Only draw line if points are close enough
-              double distance = (_offset[i]! - _offset[i + 1]!).distance;
-              if (distance < 50) { // Adjust threshold as needed
-                final path = Path()
-                  ..moveTo(_offset[i]!.dx, _offset[i]!.dy)
-                  ..lineTo(_offset[i + 1]!.dx, _offset[i + 1]!.dy);
-                canvas.drawPath(path, _painter..strokeCap = StrokeCap.round);
-              } else {
-                // Draw individual points if too far apart
-                canvas.drawPoints(PointMode.points, [_offset[i]!], _painter..strokeCap = StrokeCap.round);
-                if (i == _offset.length - 2) {
-                  canvas.drawPoints(PointMode.points, [_offset[i + 1]!], _painter..strokeCap = StrokeCap.round);
-                }
-              }
+              // Begin a new path for valid consecutive points
+              final _path = Path()
+                ..moveTo(_offset[i]!.dx, _offset[i]!.dy)
+                ..lineTo(_offset[i + 1]!.dx, _offset[i + 1]!.dy);
+              canvas.drawPath(_path, _painter..strokeCap = StrokeCap.round);
+            } else if (_offset[i] != null && (i == _offset.length - 2 || _offset[i + 1] == null)) {
+              // Draw a single point for isolated valid points
+              canvas.drawPoints(PointMode.points, [_offset[i]!],
+                  _painter..strokeCap = StrokeCap.round);
+            } else {
+              // Reset painter state if there's a gap (to prevent red lines connecting unrelated segments)
+              _painter.color = _painter.color.withValues(red: 0, green: 0, blue: 0, alpha: 0);
             }
           }
           break;
@@ -136,16 +134,23 @@ class DrawImage extends CustomPainter {
           canvas.drawPath(_dashPath(path, _paint.strokeWidth), _paint);
           break;
         case PaintMode.freeStyle:
-          final points = _controller.offsets;
-          for (int i = 0; i < _controller.offsets.length - 1; i++) {
-            if (points[i] != null && points[i + 1] != null) {
-              canvas.drawLine(
-                  Offset(points[i]!.dx, points[i]!.dy),
-                  Offset(points[i + 1]!.dx, points[i + 1]!.dy),
-                  _paint..strokeCap = StrokeCap.round);
-            } else if (points[i] != null && points[i + 1] == null) {
-              canvas.drawPoints(PointMode.points,
-                  [Offset(points[i]!.dx, points[i]!.dy)], _paint);
+          final _offset = _controller.offsets;
+          final _painter = _paint;
+
+          for (int i = 0; i < _offset.length - 1; i++) {
+            if (_offset[i] != null && _offset[i + 1] != null) {
+              // Begin a new path for valid consecutive points
+              final _path = Path()
+                ..moveTo(_offset[i]!.dx, _offset[i]!.dy)
+                ..lineTo(_offset[i + 1]!.dx, _offset[i + 1]!.dy);
+              canvas.drawPath(_path, _painter..strokeCap = StrokeCap.round);
+            } else if (_offset[i] != null && (i == _offset.length - 2 || _offset[i + 1] == null)) {
+              // Draw a single point for isolated valid points
+              canvas.drawPoints(PointMode.points, [_offset[i]!],
+                  _painter..strokeCap = StrokeCap.round);
+            } else {
+              // Reset painter state if there's a gap (to prevent red lines connecting unrelated segments)
+              _painter.color = _painter.color.withValues(red: 0, green: 0, blue: 0, alpha: 0);
             }
           }
           break;
