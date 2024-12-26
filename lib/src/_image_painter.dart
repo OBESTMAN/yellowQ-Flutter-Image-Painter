@@ -22,7 +22,6 @@ class DrawImage extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final _offset = _controller.offsets;
 
     ///paints [ui.Image] on the canvas for reference to draw over it.
     paintImage(
@@ -36,52 +35,47 @@ class DrawImage extends CustomPainter {
     );
 
     ///paints all the previoud paintInfo history recorded on [PaintHistory]
-    //final _offset = item.offsets;
-    final _painter = _controller.paintHistory[0].paint;
-    switch (_controller.mode) {
-      case PaintMode.rect:
-        canvas.drawRect(Rect.fromPoints(_offset[0]!, _offset[1]!), _painter);
-        break;
-      case PaintMode.line:
-        canvas.drawLine(_offset[0]!, _offset[1]!, _painter);
-        break;
-      case PaintMode.circle:
-        final path = Path();
-        path.addOval(
-          Rect.fromCircle(
-              center: _offset[1]!,
-              radius: (_offset[0]! - _offset[1]!).distance),
-        );
-        canvas.drawPath(path, _painter);
-        break;
-      case PaintMode.arrow:
-        drawArrow(canvas, _offset[0]!, _offset[1]!, _painter);
-        break;
-      case PaintMode.dashLine:
-        final path = Path()
-          ..moveTo(_offset[0]!.dx, _offset[0]!.dy)
-          ..lineTo(_offset[1]!.dx, _offset[1]!.dy);
-        canvas.drawPath(_dashPath(path, _painter.strokeWidth), _painter);
-        break;
-      case PaintMode.freeStyle:
-        final newPaint = Paint()
-          ..color = Colors.blue.withValues(alpha: 0.2)
-          ..strokeWidth = 5
-          ..strokeCap = StrokeCap.round
-          ..style = PaintingStyle.stroke;
+    for (final item in _controller.paintHistory) {
+      // final _offset = item.offsets;
+      final _offset = _controller.offsets;
+      final _painter = item.paint;
+      //final _offset = item.offsets;
+      switch (_controller.mode) {
+        case PaintMode.rect:
+          canvas.drawRect(Rect.fromPoints(_offset[0]!, _offset[1]!), _painter);
+          break;
+        case PaintMode.circle:
+          final path = Path();
+          path.addOval(
+            Rect.fromCircle(
+                center: _offset[1]!,
+                radius: (_offset[0]! - _offset[1]!).distance),
+          );
+          canvas.drawPath(path, _painter);
+          break;
+        case PaintMode.arrow:
+          drawArrow(canvas, _offset[0]!, _offset[1]!, _painter);
+          break;
+        case PaintMode.freeStyle:
+          final newPaint = Paint()
+            ..color = Colors.blue.withValues(alpha: 0.3)
+            ..strokeWidth = 5
+            ..strokeCap = StrokeCap.round
+            ..style = PaintingStyle.stroke;
 
-        for (int i = 0; i < _offset.length - 1; i++) {
-          if (_offset[i] != null && _offset[i + 1] != null) {
-            final path = Path()
-              ..moveTo(_offset[i]!.dx, _offset[i]!.dy)
-              ..lineTo(_offset[i + 1]!.dx, _offset[i + 1]!.dy);
+          for (int i = 0; i < _offset.length - 1; i++) {
+            if (_offset[i] != null && _offset[i + 1] != null) {
+              final path = Path()
+                ..moveTo(_offset[i]!.dx, _offset[i]!.dy)
+                ..lineTo(_offset[i + 1]!.dx, _offset[i + 1]!.dy);
 
-            // Use the consistent 'newPaint' object
-            canvas.drawPath(path, newPaint);
+              // Use the consistent 'newPaint' object
+              canvas.drawPath(path, newPaint);
+            }
           }
-        }
-        break;
-      default:
+          break;
+        default:
+      }
     }
 
     ///Draws ongoing action on the canvas while indrag.
@@ -93,9 +87,6 @@ class DrawImage extends CustomPainter {
         case PaintMode.rect:
           canvas.drawRect(Rect.fromPoints(_start!, _end!), _paint);
           break;
-        case PaintMode.line:
-          canvas.drawLine(_start!, _end!, _paint);
-          break;
         case PaintMode.circle:
           final path = Path();
           path.addOval(Rect.fromCircle(
@@ -105,15 +96,10 @@ class DrawImage extends CustomPainter {
         case PaintMode.arrow:
           drawArrow(canvas, _start!, _end!, _paint);
           break;
-        case PaintMode.dashLine:
-          final path = Path()
-            ..moveTo(_start!.dx, _start.dy)
-            ..lineTo(_end!.dx, _end.dy);
-          canvas.drawPath(_dashPath(path, _paint.strokeWidth), _paint);
-          break;
         case PaintMode.freeStyle:
+          final _offset = _controller.offsets;
           final newPaint = Paint()
-            ..color = Colors.blue.withValues(alpha: 0.2)
+            ..color = Colors.blue.withValues(alpha: 0.3)
             ..strokeWidth = 5
             ..strokeCap = StrokeCap.round
             ..style = PaintingStyle.stroke;
@@ -158,23 +144,23 @@ class DrawImage extends CustomPainter {
 
   ///Draws dashed path.
   ///It depends on [strokeWidth] for space to line proportion.
-  Path _dashPath(Path path, double width) {
-    final dashPath = Path();
-    final dashWidth = 10.0 * width / 5;
-    final dashSpace = 10.0 * width / 5;
-    var distance = 0.0;
-    for (final pathMetric in path.computeMetrics()) {
-      while (distance < pathMetric.length) {
-        dashPath.addPath(
-          pathMetric.extractPath(distance, distance + dashWidth),
-          Offset.zero,
-        );
-        distance += dashWidth;
-        distance += dashSpace;
-      }
-    }
-    return dashPath;
-  }
+  // Path _dashPath(Path path, double width) {
+  //   final dashPath = Path();
+  //   final dashWidth = 10.0 * width / 5;
+  //   final dashSpace = 10.0 * width / 5;
+  //   var distance = 0.0;
+  //   for (final pathMetric in path.computeMetrics()) {
+  //     while (distance < pathMetric.length) {
+  //       dashPath.addPath(
+  //         pathMetric.extractPath(distance, distance + dashWidth),
+  //         Offset.zero,
+  //       );
+  //       distance += dashWidth;
+  //       distance += dashSpace;
+  //     }
+  //   }
+  //   return dashPath;
+  // }
 
   @override
   bool shouldRepaint(DrawImage oldInfo) {
