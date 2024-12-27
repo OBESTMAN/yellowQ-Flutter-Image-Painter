@@ -13,6 +13,7 @@ class WebExample extends StatefulWidget {
 
 class _WebExampleState extends State<WebExample> {
   final ImagePainterController _controller = ImagePainterController();
+  final TransformationController _transformationController = TransformationController();
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +30,7 @@ class _WebExampleState extends State<WebExample> {
       body: ImagePainter.asset(
         "assets/sample.jpg",
         controller: _controller,
+        transformationController: _transformationController,
         scalable: true,
         textDelegate: TextDelegate(),
       ),

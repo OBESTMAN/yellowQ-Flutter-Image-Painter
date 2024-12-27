@@ -12,6 +12,8 @@ class SignatureExample extends StatefulWidget {
 
 class _SignatureExampleState extends State<SignatureExample> {
   final _controller = ImagePainterController();
+  final TransformationController _transformationController = TransformationController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,6 +25,7 @@ class _SignatureExampleState extends State<SignatureExample> {
             height: 200,
             width: 300,
             controller: _controller,
+            transformationController: _transformationController,
             signatureBgColor: Colors.grey[200],
           ),
         ),
