@@ -18,6 +18,7 @@ class _MobileExampleState extends State<MobileExample> {
     strokeWidth: 4,
     mode: PaintMode.line,
   );
+  final TransformationController _transformationController = TransformationController();
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +35,7 @@ class _MobileExampleState extends State<MobileExample> {
       body: ImagePainter.asset(
         "assets/sample.jpg",
         controller: _controller,
+        transformationController: _transformationController,
         scalable: true,
         textDelegate: TextDelegate(),
       ),

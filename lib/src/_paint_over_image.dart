@@ -22,6 +22,7 @@ class ImagePainter extends StatefulWidget {
   const ImagePainter._({
     Key? key,
     required this.controller,
+    required this.transformationController,
     this.assetPath,
     this.networkUrl,
     this.byteArray,
@@ -52,9 +53,9 @@ class ImagePainter extends StatefulWidget {
   }) : super(key: key);
 
   ///Constructor for loading image from network url.
-  factory ImagePainter.network(
-    String url, {
+  factory ImagePainter.network(String url, {
     required ImagePainterController controller,
+    required TransformationController transformationController,
     Key? key,
     double? height,
     double? width,
@@ -80,6 +81,7 @@ class ImagePainter extends StatefulWidget {
   }) {
     return ImagePainter._(
       key: key,
+      transformationController: transformationController,
       controller: controller,
       networkUrl: url,
       height: height,
@@ -107,9 +109,9 @@ class ImagePainter extends StatefulWidget {
   }
 
   ///Constructor for loading image from assetPath.
-  factory ImagePainter.asset(
-    String path, {
+  factory ImagePainter.asset(String path, {
     required ImagePainterController controller,
+    required TransformationController transformationController,
     Key? key,
     double? height,
     double? width,
@@ -135,6 +137,7 @@ class ImagePainter extends StatefulWidget {
   }) {
     return ImagePainter._(
       controller: controller,
+      transformationController: transformationController,
       key: key,
       assetPath: path,
       height: height,
@@ -162,9 +165,9 @@ class ImagePainter extends StatefulWidget {
   }
 
   ///Constructor for loading image from [File].
-  factory ImagePainter.file(
-    File file, {
+  factory ImagePainter.file(File file, {
     required ImagePainterController controller,
+    required TransformationController transformationController,
     Key? key,
     double? height,
     double? width,
@@ -190,6 +193,7 @@ class ImagePainter extends StatefulWidget {
   }) {
     return ImagePainter._(
       controller: controller,
+      transformationController: transformationController,
       key: key,
       file: file,
       height: height,
@@ -217,9 +221,9 @@ class ImagePainter extends StatefulWidget {
   }
 
   ///Constructor for loading image from memory.
-  factory ImagePainter.memory(
-    Uint8List byteArray, {
+  factory ImagePainter.memory(Uint8List byteArray, {
     required ImagePainterController controller,
+    required TransformationController transformationController,
     Key? key,
     double? height,
     double? width,
@@ -245,6 +249,7 @@ class ImagePainter extends StatefulWidget {
   }) {
     return ImagePainter._(
       controller: controller,
+      transformationController: transformationController,
       key: key,
       byteArray: byteArray,
       height: height,
@@ -274,6 +279,7 @@ class ImagePainter extends StatefulWidget {
   ///Constructor for signature painting.
   factory ImagePainter.signature({
     required ImagePainterController controller,
+    required TransformationController transformationController,
     required double height,
     required double width,
     Key? key,
@@ -298,6 +304,7 @@ class ImagePainter extends StatefulWidget {
   }) {
     return ImagePainter._(
       controller: controller,
+      transformationController: transformationController,
       key: key,
       height: height,
       width: width,
@@ -326,6 +333,9 @@ class ImagePainter extends StatefulWidget {
 
   /// Class that holds the controller and it's methods.
   final ImagePainterController controller;
+
+  /// Class that holds the controller and it's methods.
+  final TransformationController transformationController;
 
   ///Only accessible through [ImagePainter.network] constructor.
   final String? networkUrl;
@@ -416,6 +426,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   int _strokeMultiplier = 1;
   late TextDelegate textDelegate;
+
   @override
   void initState() {
     super.initState();
@@ -430,7 +441,7 @@ class ImagePainterState extends State<ImagePainter> {
     }
     _resolveAndConvertImage();
     _textController = TextEditingController();
-    _transformationController = TransformationController();
+    _transformationController = widget.transformationController;
     textDelegate = widget.textDelegate ?? TextDelegate();
   }
 
@@ -577,7 +588,10 @@ class ImagePainterState extends State<ImagePainter> {
             ),
           ),
           if (!widget.controlsAtTop && widget.showControls) _buildControls(),
-          SizedBox(height: MediaQuery.of(context).padding.bottom)
+          SizedBox(height: MediaQuery
+              .of(context)
+              .padding
+              .bottom)
         ],
       ),
     );
@@ -644,7 +658,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   _scaleStartGesture(ScaleStartDetails onStart) {
     final _zoomAdjustedOffset =
-        _transformationController.toScene(onStart.localFocalPoint);
+    _transformationController.toScene(onStart.localFocalPoint);
     if (!widget.isSignature) {
       _controller.setStart(_zoomAdjustedOffset);
       _controller.addOffsets(_zoomAdjustedOffset);
@@ -654,7 +668,7 @@ class ImagePainterState extends State<ImagePainter> {
   ///Fires while user is interacting with the screen to record painting.
   void _scaleUpdateGesture(ScaleUpdateDetails onUpdate) {
     final _zoomAdjustedOffset =
-        _transformationController.toScene(onUpdate.localFocalPoint);
+    _transformationController.toScene(onUpdate.localFocalPoint);
     _controller.setInProgress(true);
     if (_controller.start == null) {
       _controller.setStart(_zoomAdjustedOffset);
@@ -687,7 +701,8 @@ class ImagePainterState extends State<ImagePainter> {
     _controller.resetStartAndEnd();
   }
 
-  void _addEndPoints() => _addPaintHistory(
+  void _addEndPoints() =>
+      _addPaintHistory(
         PaintInfo(
           offsets: <Offset?>[_controller.start, _controller.end],
           mode: _controller.mode,
@@ -697,7 +712,8 @@ class ImagePainterState extends State<ImagePainter> {
         ),
       );
 
-  void _addFreeStylePoints() => _addPaintHistory(
+  void _addFreeStylePoints() =>
+      _addPaintHistory(
         PaintInfo(
           offsets: <Offset?>[..._controller.offsets],
           mode: PaintMode.freeStyle,
@@ -714,7 +730,8 @@ class ImagePainterState extends State<ImagePainter> {
           child: Wrap(
             children: paintModes(textDelegate)
                 .map(
-                  (item) => SelectionItems(
+                  (item) =>
+                  SelectionItems(
                     data: item,
                     isSelected: _controller.mode == item.mode,
                     selectedColor: widget.optionSelectedColor,
@@ -731,7 +748,7 @@ class ImagePainterState extends State<ImagePainter> {
                       }
                     },
                   ),
-                )
+            )
                 .toList(),
           ),
         ),
@@ -876,7 +893,7 @@ class ImagePainterState extends State<ImagePainter> {
               borderRadius: BorderRadius.circular(20),
             ),
             icon:
-                widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
+            widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
             itemBuilder: (_) => [_showRangeSlider()],
           ),
           AnimatedBuilder(
@@ -893,7 +910,10 @@ class ImagePainterState extends State<ImagePainter> {
                     ),
                     Text(
                       textDelegate.fill,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .bodyMedium,
                     )
                   ],
                 );
